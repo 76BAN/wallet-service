@@ -7,6 +7,7 @@ import (
 	"wallets_service/database"
 	"wallets_service/handler"
 	middleware "wallets_service/midleware"
+	"wallets_service/rabbitmq"
 	"wallets_service/repository"
 	routes "wallets_service/route"
 	"wallets_service/service"
@@ -31,11 +32,22 @@ func main() {
 	}
 
 	fmt.Println("Redis berhasil terhubung")
+
+	loggingPublisher, err := rabbitmq.NewLoggingPublisher(
+		"amqp://alert_app:Silaban123@127.0.0.1:5672/",
+	)
+	if err != nil {
+		log.Fatal("Gagal menghubungkan Logging Publisher: ", err)
+	}
+	defer loggingPublisher.Close()
+
+	log.Println("RabbitMQ Logging Publisher berhasil terhubung")
+
 	// Repository.
 	walletRepository := repository.NewWalletsRepository(db)
 
 	// Service.
-	walletService := service.NewWalletService(walletRepository)
+	walletService := service.NewWalletService(walletRepository, loggingPublisher)
 
 	// Handler.
 	walletHandler := handler.NewWalletHandler(walletService)

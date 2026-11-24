@@ -48,7 +48,7 @@ func (h *WalletHandler) CreateWallet(c *echo.Context) error {
 	}
 
 	wallet.UserID = userID
-	result, err := h.WalletService.CreateWallet(wallet)
+	result, err := h.WalletService.CreateWallet(wallet, userID)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"message": err.Error(),
@@ -76,7 +76,7 @@ func (h *WalletHandler) FindWalletByID(c *echo.Context) error {
 		})
 	}
 
-	wallet, err := h.WalletService.FindWalletByID(id)
+	wallet, err := h.WalletService.FindWalletByID(id, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return c.JSON(http.StatusNotFound, map[string]interface{}{
@@ -103,7 +103,7 @@ func (h *WalletHandler) FindWalletByID(c *echo.Context) error {
 }
 
 func (h *WalletHandler) FindWalletsByGroupID(c *echo.Context) error {
-	_, err := getUserID(c)
+	userID, err := getUserID(c)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, map[string]interface{}{
 			"message": err.Error(),
@@ -112,7 +112,7 @@ func (h *WalletHandler) FindWalletsByGroupID(c *echo.Context) error {
 
 	groupID := c.Param("groupId")
 
-	wallets, err := h.WalletService.FindWalletsByGroupID(groupID)
+	wallets, err := h.WalletService.FindWalletsByGroupID(groupID, userID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"message": err.Error(),
@@ -152,7 +152,7 @@ func (h *WalletHandler) FindWalletsByUserIDAndGroupID(c *echo.Context) error {
 }
 
 func (h *WalletHandler) FindWalletByName(c *echo.Context) error {
-	_, err := getUserID(c)
+	userID, err := getUserID(c)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, map[string]interface{}{
 			"message": err.Error(),
@@ -161,7 +161,7 @@ func (h *WalletHandler) FindWalletByName(c *echo.Context) error {
 
 	walletName := c.QueryParam("wallet_name")
 
-	wallet, err := h.WalletService.FindWalletByName(walletName)
+	wallet, err := h.WalletService.FindWalletByName(walletName, userID)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, map[string]interface{}{
 			"message": err.Error(),
@@ -189,7 +189,7 @@ func (h *WalletHandler) UpdateWallet(c *echo.Context) error {
 		})
 	}
 
-	existingWallet, err := h.WalletService.FindWalletByID(id)
+	existingWallet, err := h.WalletService.FindWalletByID(id, userID)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, map[string]interface{}{
 			"message": "Wallet tidak ditemukan",
@@ -212,7 +212,7 @@ func (h *WalletHandler) UpdateWallet(c *echo.Context) error {
 	wallet.ID = id
 	wallet.UserID = userID
 
-	result, err := h.WalletService.UpdateWallet(wallet)
+	result, err := h.WalletService.UpdateWallet(wallet, userID)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"message": err.Error(),
@@ -240,7 +240,7 @@ func (h *WalletHandler) DeleteWallet(c *echo.Context) error {
 		})
 	}
 
-	existingWallet, err := h.WalletService.FindWalletByID(id)
+	existingWallet, err := h.WalletService.FindWalletByID(id, userID)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, map[string]interface{}{
 			"message": "Wallet tidak ditemukan",
@@ -253,7 +253,7 @@ func (h *WalletHandler) DeleteWallet(c *echo.Context) error {
 		})
 	}
 
-	err = h.WalletService.DeleteWallet(id)
+	err = h.WalletService.DeleteWallet(id, userID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"message": err.Error(),
